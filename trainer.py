@@ -237,15 +237,19 @@ def run():
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
 
-  with tf.Session(config=tf.ConfigProto(intra_op_parallelism_threads=2)) as sess:
+  with tf.Session() as sess:
+
     sess.run(tf.global_variables_initializer())
     for i in range(3119):
+          #3119):
       batch = mnist.train.next_batch(50)
       if (i % 100 == 0):
         train_accuracy = accuracy.eval(feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
         print('step %d, training accuracy %g' % (i, train_accuracy))
       train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
-
+    # saver = tf.train.Saver()
+    # saver.save(sess,"./Test_MNIST_model.ckpt")
+    #print(sess.run(y_,{x: batch[0]}))
     print('test accuracy %g' % accuracy.eval(feed_dict={
         x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 # def run():
@@ -293,4 +297,20 @@ def run():
 #       train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 #     print('test accuracy %g' % accuracy.eval(feed_dict={
 #         x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+
+# def test():
+#   saver = tf.train.import_meta_graph('Test_MNIST_model.ckpt.meta')
+#   saver = tf.train.Saver()
+#   mnist = mymnist.read_data_sets()
+#   # Later, launch the model, use the saver to restore variables from disk, and
+#   # do some work with the model.
+#   with tf.Session() as sess:
+#     # Restore variables from disk.
+#     saver.restore(sess,tf.train.latest_checkpoint('./'))
+#     print("Model restored.")
+#     print('test accuracy %g' % accuracy.eval(feed_dict={
+#       x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+
+# test()
 run()
+
