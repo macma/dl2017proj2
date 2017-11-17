@@ -20,18 +20,18 @@ resizedir = "./resized_photos28"
 
 def dirToClass(flowername):
     if(flowername == 'tulips'):
-        return 1;
+        return 0;
     if(flowername == 'sunflowers'):
-        return 2;
+        return 1;
     if(flowername == 'roses'):
-        return 3;
+        return 2;
     if(flowername == 'dandelion'):
-        return 4;
+        return 3;
     if(flowername == 'daisy'):
-        return 5;
+        return 4;
     return 0;
 
-def process_images(label_file = 1, one_hot=False, num_classes=5):
+def process_images(label_file = 1, one_hot=True, num_classes=5):
     if label_file == 1:
         images = numpy.empty((3119, 2352))
         labels = numpy.empty(3119)
@@ -58,18 +58,18 @@ def process_images(label_file = 1, one_hot=False, num_classes=5):
                       img_ndarray = numpy.asarray(image, dtype='float32')
                       images[counter] = numpy.ndarray.flatten(img_ndarray)
                       labels[counter] = numpy.int(dirToClass(dir))
+                      # print (labels[counter])
                       # if counter % 100 == 0:
                       #       print("processing %d: " % counter + image_dir + str(label_record[name]) + '/' + name)
                         # fn.append(resizedir + "/" + dir + "/" + file)
                         # lb.append(dirToClass(dir))
                       counter = counter + 1
-
     num_images = counter
     rows = 28
     cols = 28
-    if one_hot:
-      return images.reshape(num_images, rows, cols, 3), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
-    return images.reshape(num_images, rows, cols, 3), numpy.array(labels, dtype=numpy.uint8)
+    # if one_hot:
+    return images.reshape(num_images, rows, cols, 3), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
+    #return images.reshape(num_images, rows, cols, 3), numpy.array(labels, dtype=numpy.uint8)
 
     # for name in label_record:
     #     # print label_record[name]
@@ -150,6 +150,7 @@ def process_images(label_file = 1, one_hot=False, num_classes=5):
 
 def dense_to_one_hot(labels_dense, num_classes):
   """Convert class labels from scalars to one-hot vectors."""
+  print ('in onehot', labels_dense, num_classes)
   num_labels = labels_dense.shape[0]
   index_offset = numpy.arange(num_labels) * num_classes
   labels_one_hot = numpy.zeros((num_labels, num_classes))
@@ -175,7 +176,6 @@ def read_data_sets(one_hot=False,
     validation_labels = train_labels[:validation_size]
     train_images = train_images[validation_size:]
     train_labels = train_labels[validation_size:]
-
     train = DataSet(
         train_images, train_labels, dtype=dtype, reshape=reshape, seed=seed)
     validation = DataSet(
