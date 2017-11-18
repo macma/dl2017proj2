@@ -2,7 +2,9 @@
 # http://ischlag.github.io/2016/06/19/tensorflow-input-pipeline-example/
 import tensorflow as tf
 import os
+import numpy as np
 import mymnist
+import datetime
 # step 1
 # filenames = ['test_photos/100080576_f52e8ee070_n.jpg', 'test_photos/10140303196_b88d3d6cec.jpg',
 #              'test_photos/10172379554_b296050f82_n.jpg', 'test_photos/10172567486_2748826a8b.jpg']
@@ -245,72 +247,73 @@ def run():
       batch = mnist.train.next_batch(50)
       if (i % 100 == 0):
         train_accuracy = accuracy.eval(feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
-        print('step %d, training accuracy %g' % (i, train_accuracy))
+        print(str(datetime.datetime.now()), ' -- step %d, training accuracy %g' % (i, train_accuracy))
       train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
-    # saver = tf.train.Saver()
-    # saver.save(sess,"./Test_MNIST_model.ckpt")
+
+    model_dir = "model"
+    # if not os.path.exists(model_dir):
+    # os.mkdir(model_dir)
+    saver = tf.train.Saver()
+    saver.save(sess,"./model/ckp")
     #print(sess.run(y_,{x: batch[0]}))
+    ret = sess.run(y_, feed_dict = {x : mnist.test.images[0].reshape(1, 2352)})
+    print("result predicted:%d"%(ret.argmax()))
+
     print('test accuracy %g' % accuracy.eval(feed_dict={
         x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
-# def run():
-#   # Import data
-#   #mnist, labels = batchImages();
-#   mnist = mymnist.read_data_sets()
-#   #mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
 
-#   # Create the model
-#   x = tf.placeholder(tf.float32, [None, 784])
 
-#   # Define loss and optimizer
-#   y_ = tf.placeholder(tf.float32, [None, 10])
+def test():
+      # Import data
+  mnist = mymnist.read_data_sets()
 
-#   # Build the graph for the deep net
-#   y_conv, keep_prob = deepnn(x)
+  # Create the model
+  x = tf.placeholder(tf.float32, [None, 2352])
 
-#   with tf.name_scope('loss'):
-#     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=y_,
-#                                                             logits=y_conv)
-#   cross_entropy = tf.reduce_mean(cross_entropy)
+  # Define loss and optimizer
+  y_ = tf.placeholder(tf.float32, [None, 5])
 
-#   with tf.name_scope('adam_optimizer'):
-#     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+  # Build the graph for the deep net
+  y_conv, keep_prob = deepnn(x)
 
-#   with tf.name_scope('accuracy'):
-#     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
-#     correct_prediction = tf.cast(correct_prediction, tf.float32)
-#   accuracy = tf.reduce_mean(correct_prediction)
+  with tf.name_scope('loss'):
+    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=y_,
+                                                            logits=y_conv)
+  cross_entropy = tf.reduce_mean(cross_entropy)
 
-#   graph_location = './'
-#   #tempfile.mkdtemp()
-#   print('Saving graph to: %s' % graph_location)
-#   train_writer = tf.summary.FileWriter(graph_location)
-#   train_writer.add_graph(tf.get_default_graph())
+  with tf.name_scope('adam_optimizer'):
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
-#   with tf.Session() as sess:
-#     sess.run(tf.global_variables_initializer())
-#     for i in range(20000):
-#           batch = mnist.train.next_batch(50)
-#       if i % 100 == 0:
-#             train_accuracy = accuracy.eval(feed_dict={
-#               x: batch[0], y_: batch[1], keep_prob: 1.0})
-#             print('step %d, training accuracy %g' % (i, train_accuracy))
-#       train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
-#     print('test accuracy %g' % accuracy.eval(feed_dict={
-#         x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+  with tf.name_scope('accuracy'):
+    correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
+    correct_prediction = tf.cast(correct_prediction, tf.float32)
+  accuracy = tf.reduce_mean(correct_prediction)
 
-# def test():
-#   saver = tf.train.import_meta_graph('Test_MNIST_model.ckpt.meta')
-#   saver = tf.train.Saver()
-#   mnist = mymnist.read_data_sets()
-#   # Later, launch the model, use the saver to restore variables from disk, and
-#   # do some work with the model.
-#   with tf.Session() as sess:
-#     # Restore variables from disk.
-#     saver.restore(sess,tf.train.latest_checkpoint('./'))
-#     print("Model restored.")
-#     print('test accuracy %g' % accuracy.eval(feed_dict={
-#       x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+  graph_location = './'#tempfile.mkdtemp()
+  print('Saving graph to: %s' % graph_location)
+  train_writer = tf.summary.FileWriter(graph_location)
+  train_writer.add_graph(tf.get_default_graph())
 
-# test()
-run()
+  with tf.Session() as sess:
+
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver()
+    saver.restore(sess, "./model/ckp")
+    #saver = tf.train.import_meta_graph("./model/ckp.meta")
+
+    # saver.save(sess,"./model/ckp")
+    #print(sess.run(y_,{x: batch[0]}))
+    ret = sess.run(y_conv, feed_dict = {x : mnist.test.images})
+    print("result predicted:%d"%(ret))
+    # prediction=tf.argmax(y_conv,1)
+    # print(sess.run(y_conv, feed_dict={x: mnist.test.images[0].reshape(1,2352)}))
+    # prediction=tf.argmax(y_conv,1)
+    # print "predictions", y_conv.eval(feed_dict={x: mnist.test.images}, session=sess)
+    # classification = sess.run(y_, feed_dict)
+    # print 'aaaaaa', y_conv.eval()
+    print('test accuracy %g' % accuracy.eval(feed_dict={
+        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+
+test()
+# run()
 
