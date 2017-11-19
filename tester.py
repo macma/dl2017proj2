@@ -41,8 +41,21 @@ def test():
     
     prediction=tf.argmax(y_conv,1)
     print 'length', len(mnist.test.images)
+    strresult = ""
+    fn = 'project2_20413289.txt'
+
+    try:
+        file = open(fn, 'r')
+    except:
+        file = open(fn, 'w')
+        file.close()
     for i in range(len(mnist.test.images)):
-          print mymnist.classToFlowerName(prediction.eval(feed_dict={x: [mnist.test.images[i]],keep_prob: 1.0}, session=sess)[0])
+        strresult = strresult + str(prediction.eval(feed_dict={x: [mnist.test.images[i]],keep_prob: 1.0}, session=sess)[0]) + '\n'
+    print strresult
+    text_file = open(fn, "w")
+    text_file.write(strresult)
+    text_file.close()
+          # print mymnist.classToFlowerName(prediction.eval(feed_dict={x: [mnist.test.images[i]],keep_prob: 1.0}, session=sess)[0])
         
     # print prediction.eval(feed_dict={x: [mnist.test.images[4]],keep_prob: 1.0}, session=sess)[0]
     # print prediction.eval(feed_dict={x: [mnist.test.images[400]],keep_prob: 1.0}, session=sess)[0]

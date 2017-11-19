@@ -12,66 +12,70 @@ from tensorflow.python.framework import random_seed
 from PIL import Image
 # from utils.labelFile2Map import *
 
+
 def _read32(bytestream):
   dt = numpy.dtype(numpy.uint32).newbyteorder('>')
   return numpy.frombuffer(bytestream.read(4), dtype=dt)[0]
 
+
 resizedir = "./resized_photos28"
 
-def dirToClass(flowername):
-    if(flowername == 'tulips'):
-        return 0;
-    if(flowername == 'sunflowers'):
-        return 1;
-    if(flowername == 'roses'):
-        return 2;
-    if(flowername == 'dandelion'):
-        return 3;
-    if(flowername == 'daisy'):
-        return 4;
-    return 0;
 
-  
+def dirToClass(flowername):
+    if(flowername == 'daisy'):
+        return 0
+    if(flowername == 'dandelion'):
+        return 1
+    if(flowername == 'roses'):
+        return 2
+    if(flowername == 'sunflowers'):
+        return 3
+    if(flowername == 'tulips'):
+        return 4
+    return 0
+
+
 def classToFlowerName(cls):
     if(cls == 0):
-        return 'tulips'
+        return 'daisy'
     if(cls == 1):
-        return 'sunflowers';
+        return 'dandelion'
     if(cls == 2):
-        return 'roses';
+        return 'roses'
     if(cls == 3):
-        return 'dandelion';
+        return 'sunflowers'
     if(cls == 4):
-        return 'daisy';
+        return 'tulips'
 
-def process_images(label_file = 1, one_hot=True, num_classes=5):
+
+def process_images(label_file, one_hot=True, num_classes=5):
+    filename = ""
     if label_file == 1:
-        images = numpy.empty((3119, 2352))
-        labels = numpy.empty(3119)
-        lines = 3119
+        filename = "train.txt"
     if label_file == 2:
-        images = numpy.empty((551, 2352))
-        labels = numpy.empty(551)
-        lines = 551
+        filename = "val.txt"
+    if label_file == 3:
+        filename = "test.txt"
 
-    counter = 0;
-    for subdir, dirs, files in os.walk(resizedir):
-        for dir in dirs:
-            if((dir != 'test' and label_file ==1) or (dir == 'test' and label_file ==2)):
-                for subdir1, dirs1, files1 in os.walk(resizedir + "/" + dir):
-                    for file in files1:
-                      image = Image.open(resizedir + "/" + dir + "/" + file)
-                      
-                      img_ndarray = numpy.asarray(image, dtype='float32')
-                      images[counter] = numpy.ndarray.flatten(img_ndarray)
-                      labels[counter] = numpy.int(dirToClass(dir))
-                      counter = counter + 1
-    num_images = counter
+    file = open(filename, "r")
+    str = file.read()
+    counter = 0
+    strlist = str.strip().split('\n')
+    images = numpy.empty((len(strlist), 2352))
+    labels = numpy.zeros(len(strlist))
+    lines = len(strlist)
+    for i in range(len(strlist)):
+        image = Image.open(strlist[i].split(' ')[0].replace("flower_photos", "resized_photos28"));
+
+        img_ndarray = numpy.asarray(image, dtype='float32')
+        images[i] = numpy.ndarray.flatten(img_ndarray)
+        if(label_file <> 3):
+            labels[i] = int(strlist[i].split(' ')[1])
     rows = 28
     cols = 28
-    # if one_hot:
-    return images.reshape(num_images, rows, cols, 3), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
-    
+    return images.reshape(lines, rows, cols, 3), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
+
+
 def dense_to_one_hot(labels_dense, num_classes):
   """Convert class labels from scalars to one-hot vectors."""
   print ('in onehot', labels_dense, num_classes)
@@ -81,25 +85,25 @@ def dense_to_one_hot(labels_dense, num_classes):
   labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
   return labels_one_hot
 
+
 def read_data_sets(one_hot=False,
                    dtype=dtypes.float32,
                    reshape=True,
                    validation_size=500,
                    seed=None):
-    # from tensorflow.examples.tutorials.mnist import input_data
-    # train and test from images and txt labels
     train_images, train_labels = process_images(1, one_hot=one_hot)
-    test_images, test_labels = process_images(2, one_hot=one_hot)
+    validation_images, validation_labels = process_images(2, one_hot=one_hot)
+    test_images, test_labels = process_images(3, one_hot=one_hot)
+    print ('test_images', len(train_images), '-', len (validation_images), '--,', len(test_images))
+    # if not 0 <= validation_size <= len(train_images):
+    #     raise ValueError(
+    #         'Validation size should be between 0 and {}. Received: {}.'
+    #         .format(len(train_images), validation_size))
 
-    if not 0 <= validation_size <= len(train_images):
-        raise ValueError(
-            'Validation size should be between 0 and {}. Received: {}.'
-                .format(len(train_images), validation_size))
-
-    validation_images = train_images[:validation_size]
-    validation_labels = train_labels[:validation_size]
-    train_images = train_images[validation_size:]
-    train_labels = train_labels[validation_size:]
+    # validation_images = train_images[:validation_size]
+    # validation_labels = train_labels[:validation_size]
+    # train_images = train_images[validation_size:]
+    # train_labels = train_labels[validation_size:]
     train = DataSet(
         train_images, train_labels, dtype=dtype, reshape=reshape, seed=seed)
     validation = DataSet(
@@ -212,7 +216,7 @@ class DataSet(object):
       end = self._index_in_epoch
       images_new_part = self._images[start:end]
       labels_new_part = self._labels[start:end]
-      return numpy.concatenate((images_rest_part, images_new_part), axis=0) , numpy.concatenate((labels_rest_part, labels_new_part), axis=0)
+      return numpy.concatenate((images_rest_part, images_new_part), axis=0), numpy.concatenate((labels_rest_part, labels_new_part), axis=0)
     else:
       self._index_in_epoch += batch_size
       end = self._index_in_epoch
@@ -221,6 +225,7 @@ class DataSet(object):
 
 def load_mnist(train_dir='MNIST-data'):
   return read_data_sets()
+
 
 if __name__ == "__main__":
   data_dir = "../MNIST_data/"

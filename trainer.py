@@ -228,8 +228,8 @@ def run():
     saver = tf.train.Saver()
     saver.save(sess, "./model/ckp")
 
-    # print('test accuracy %g' % accuracy.eval(feed_dict={
-    #     x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+    print('test accuracy %g' % accuracy.eval(feed_dict={
+        x: mnist.validation.images, y_: mnist.validation.labels, keep_prob: 1.0}))
 
 
 if __name__ == "__main__":
