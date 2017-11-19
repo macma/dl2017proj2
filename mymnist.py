@@ -31,6 +31,19 @@ def dirToClass(flowername):
         return 4;
     return 0;
 
+  
+def classToFlowerName(cls):
+    if(cls == 0):
+        return 'tulips'
+    if(cls == 1):
+        return 'sunflowers';
+    if(cls == 2):
+        return 'roses';
+    if(cls == 3):
+        return 'dandelion';
+    if(cls == 4):
+        return 'daisy';
+
 def process_images(label_file = 1, one_hot=True, num_classes=5):
     if label_file == 1:
         images = numpy.empty((3119, 2352))
@@ -40,12 +53,6 @@ def process_images(label_file = 1, one_hot=True, num_classes=5):
         images = numpy.empty((551, 2352))
         labels = numpy.empty(551)
         lines = 551
-
-    #label_record = map(lines)
-    # file_name_length = len(file.getFileName(label_file))
-    # image_dir = label_file[:-1*file_name_length]
-    # print(len(label_record))
-    # index = 0
 
     counter = 0;
     for subdir, dirs, files in os.walk(resizedir):
@@ -58,96 +65,13 @@ def process_images(label_file = 1, one_hot=True, num_classes=5):
                       img_ndarray = numpy.asarray(image, dtype='float32')
                       images[counter] = numpy.ndarray.flatten(img_ndarray)
                       labels[counter] = numpy.int(dirToClass(dir))
-                      # print (labels[counter])
-                      # if counter % 100 == 0:
-                      #       print("processing %d: " % counter + image_dir + str(label_record[name]) + '/' + name)
-                        # fn.append(resizedir + "/" + dir + "/" + file)
-                        # lb.append(dirToClass(dir))
                       counter = counter + 1
     num_images = counter
     rows = 28
     cols = 28
     # if one_hot:
     return images.reshape(num_images, rows, cols, 3), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
-    #return images.reshape(num_images, rows, cols, 3), numpy.array(labels, dtype=numpy.uint8)
-
-    # for name in label_record:
-    #     # print label_record[name]
-    #     image = Image.open(image_dir + str(label_record[name]) + '/' + name)
-    #     if index % 100 == 0:
-    #         print("processing %d: " % index + image_dir + str(label_record[name]) + '/' + name)
-
-    #     img_ndarray = numpy.asarray(image, dtype='float32')
-    #     images[index] = numpy.ndarray.flatten(img_ndarray)
-    #     labels[index] = numpy.int(label_record[name])
-
-    #     index = index + 1
-    # print("done: %d" % index)
-    # num_images = index
-    # rows = 28
-    # cols = 28
-    # if one_hot:
-    #   return images.reshape(num_images, rows, cols, 1), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
-    # return images.reshape(num_images, rows, cols, 1), numpy.array(labels, dtype=numpy.uint8)
-
-
-
-    # fn = []
-    # lb = []
-    # counter = 0;
-    # for subdir, dirs, files in os.walk(resizedir):
-    #     for dir in dirs:
-    #         if(dir != 'test'):
-    #             for subdir1, dirs1, files1 in os.walk(resizedir + "/" + dir):
-    #                 for file in files1:
-    #                     fn.append(resizedir + "/" + dir + "/" + file)
-    #                     lb.append(dirToClass(dir))
-    #                     counter = counter + 1
-    # # A vector of filenames.
-    # # filenames = tf.constant(fn)
-    # # # `labels[i]` is the label for the image in `filenames[i].
-    # # labels = tf.constant(lb)
-    # dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-    # dataset = dataset.map(_parse_function)
-    # rows = 28
-    # cols = 28
-    # if one_hot:
-    #   return images.reshape(counter, rows, cols, 1), dense_to_one_hot(numpy.array(lb, dtype=numpy.uint8), num_classes)
-    # return images.reshape(counter, rows, cols, 1), numpy.array(lb, dtype=numpy.uint8)
-
-
-    # if file.getFileName(label_file) == 'train.txt':
-    #     images = numpy.empty((60000, 784))
-    #     labels = numpy.empty(60000)
-    # if file.getFileName(label_file) == 'test.txt':
-    #     images = numpy.empty((10000, 784))
-    #     labels = numpy.empty(10000)
-    # lines = readLines(label_file)
-    # label_record = map(lines)
-    # file_name_length = len(file.getFileName(label_file))
-    # image_dir = label_file[:-1*file_name_length]
-    # print(len(label_record))
-    # index = 0
-    # for name in label_record:
-    #     # print label_record[name]
-    #     image = Image.open(image_dir + str(label_record[name]) + '/' + name)
-    #     if index % 100 == 0:
-    #         print("processing %d: " % index + image_dir + str(label_record[name]) + '/' + name)
-
-    #     img_ndarray = numpy.asarray(image, dtype='float32')
-    #     images[index] = numpy.ndarray.flatten(img_ndarray)
-    #     labels[index] = numpy.int(label_record[name])
-
-    #     index = index + 1
-    # print("done: %d" % index)
-    # num_images = index
-    # rows = 28
-    # cols = 28
-    # if one_hot:
-    #   return images.reshape(num_images, rows, cols, 1), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
-    # return images.reshape(num_images, rows, cols, 1), numpy.array(labels, dtype=numpy.uint8)
-
-
+    
 def dense_to_one_hot(labels_dense, num_classes):
   """Convert class labels from scalars to one-hot vectors."""
   print ('in onehot', labels_dense, num_classes)

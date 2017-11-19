@@ -13,7 +13,8 @@ def test():
   y_ = tf.placeholder(tf.float32, [None, 5])
 
   # Build the graph for the deep net
-  y_conv, keep_prob = deepnn(x)
+  y_conv, keep_prob = trainer.deepnn(x)
+  y_prediction = tf.reduce_mean(y_conv, 0)
 
   with tf.name_scope('loss'):
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=y_,
@@ -34,25 +35,20 @@ def test():
   train_writer.add_graph(tf.get_default_graph())
 
   with tf.Session() as sess:
-
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     saver.restore(sess, "./model/ckp")
-    #saver = tf.train.import_meta_graph("./model/ckp.meta")
+    
+    prediction=tf.argmax(y_conv,1)
+    print 'length', len(mnist.test.images)
+    for i in range(len(mnist.test.images)):
+          print mymnist.classToFlowerName(prediction.eval(feed_dict={x: [mnist.test.images[i]],keep_prob: 1.0}, session=sess)[0])
+        
+    # print prediction.eval(feed_dict={x: [mnist.test.images[4]],keep_prob: 1.0}, session=sess)[0]
+    # print prediction.eval(feed_dict={x: [mnist.test.images[400]],keep_prob: 1.0}, session=sess)[0]
+    
 
-    # saver.save(sess,"./model/ckp")
-    #print(sess.run(y_,{x: batch[0]}))
-    ret = sess.run(y_conv, feed_dict = {x : mnist.test.images})
-    print("result predicted:%d"%(ret))
-    # prediction=tf.argmax(y_conv,1)
-    # print(sess.run(y_conv, feed_dict={x: mnist.test.images[0].reshape(1,2352)}))
-    # prediction=tf.argmax(y_conv,1)
-    # print "predictions", y_conv.eval(feed_dict={x: mnist.test.images}, session=sess)
-    # classification = sess.run(y_, feed_dict)
-    # print 'aaaaaa', y_conv.eval()
-    print('test accuracy %g' % accuracy.eval(feed_dict={
-        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
-test()
-# run()
+if __name__ == "__main__":
+      test()
 

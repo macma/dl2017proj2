@@ -31,15 +31,15 @@ resizedir = "./resized_photos28"
 
 def dirToClass(flowername):
     if(flowername == 'tulips'):
-        return 1;
+        return 1
     if(flowername == 'sunflowers'):
-        return 2;
+        return 2
     if(flowername == 'roses'):
-        return 3;
+        return 3
     if(flowername == 'dandelion'):
-        return 4;
+        return 4
     if(flowername == 'daisy'):
-        return 5;
+        return 5
 # Reads an image from a file, decodes it into a dense tensor, and resizes it
 # to a fixed shape.
 
@@ -63,51 +63,18 @@ batch_start = 0
 def next_batch(batch_size, batch_data):
       print (type(batch_data))
       global batch_start
-      temp_start = batch_start;
+      temp_start = batch_start
       batch_start = temp_start + batch_size
       end = temp_start + batch_size
       if(end > len(batch_data)):
             end = len(batch_data)
       return batch_data[temp_start, end]
-    #   shuffle = True
-    #   start = self._index_in_epoch
-    # # Shuffle for the first epoch
-    # if _epochs_completed == 0 and start == 0 and shuffle:
-    #   perm0 = numpy.arange(self._num_examples)
-    #   numpy.random.shuffle(perm0)
-    #   self._images = self.images[perm0]
-    #   self._labels = self.labels[perm0]
-    # # Go to the next epoch
-    # if start + batch_size > self._num_examples:
-    #   # Finished epoch
-    #   _epochs_completed += 1
-    #   # Get the rest examples in this epoch
-    #   rest_num_examples = self._num_examples - start
-    #   images_rest_part = self._images[start:self._num_examples]
-    #   labels_rest_part = self._labels[start:self._num_examples]
-    #   # Shuffle the data
-    #   if shuffle:
-    #     perm = numpy.arange(self._num_examples)
-    #     numpy.random.shuffle(perm)
-    #     self._images = self.images[perm]
-    #     self._labels = self.labels[perm]
-    #   # Start next epoch
-    #   start = 0
-    #   self._index_in_epoch = batch_size - rest_num_examples
-    #   end = self._index_in_epoch
-    #   images_new_part = self._images[start:end]
-    #   labels_new_part = self._labels[start:end]
-    #   return numpy.concatenate((images_rest_part, images_new_part), axis=0) , numpy.concatenate((labels_rest_part, labels_new_part), axis=0)
-    # else:
-    #   self._index_in_epoch += batch_size
-    #   end = self._index_in_epoch
-    #   return self._images[start:end], self._labels[start:end]
 
 
 def batchImages():
     fn = []
     lb = []
-    counter = 0;
+    counter = 0
     for subdir, dirs, files in os.walk(resizedir):
         for dir in dirs:
             if(dir != 'test'):
@@ -120,6 +87,7 @@ def batchImages():
     filenames = tf.constant(fn)
     # `labels[i]` is the label for the image in `filenames[i].
     labels = tf.constant(lb)
+    print labels
     dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
     dataset = dataset.map(_parse_function)
     return dataset, labels
@@ -136,6 +104,7 @@ def deepnn(x):
     digits 0-9). keep_prob is a scalar placeholder for the probability of
     dropout.
   """
+
   # Reshape to use within a convolutional neural net.
   # Last dimension is for "features" - there is only one here, since images are
   # grayscale -- it would be 3 for an RGB image, 4 for RGBA, etc.
@@ -208,6 +177,7 @@ def bias_variable(shape):
   initial = tf.constant(0.1, shape=shape)
   return tf.Variable(initial)
 
+
 def run():
       # Import data
   mnist = mymnist.read_data_sets()
@@ -234,7 +204,7 @@ def run():
     correct_prediction = tf.cast(correct_prediction, tf.float32)
   accuracy = tf.reduce_mean(correct_prediction)
 
-  graph_location = './'#tempfile.mkdtemp()
+  graph_location = './'  # tempfile.mkdtemp()
   print('Saving graph to: %s' % graph_location)
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
@@ -246,74 +216,21 @@ def run():
           #3119):
       batch = mnist.train.next_batch(50)
       if (i % 100 == 0):
-        train_accuracy = accuracy.eval(feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
-        print(str(datetime.datetime.now()), ' -- step %d, training accuracy %g' % (i, train_accuracy))
+        train_accuracy = accuracy.eval(
+            feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
+        print(str(datetime.datetime.now()),
+              ' -- step %d, training accuracy %g' % (i, train_accuracy))
       train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 
     model_dir = "model"
-    # if not os.path.exists(model_dir):
-    # os.mkdir(model_dir)
+    if not os.path.exists(model_dir):
+      os.mkdir(model_dir)
     saver = tf.train.Saver()
-    saver.save(sess,"./model/ckp")
-    #print(sess.run(y_,{x: batch[0]}))
-    ret = sess.run(y_, feed_dict = {x : mnist.test.images[0].reshape(1, 2352)})
-    print("result predicted:%d"%(ret.argmax()))
+    saver.save(sess, "./model/ckp")
 
-    print('test accuracy %g' % accuracy.eval(feed_dict={
-        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+    # print('test accuracy %g' % accuracy.eval(feed_dict={
+    #     x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
 
-def test():
-      # Import data
-  mnist = mymnist.read_data_sets()
-
-  # Create the model
-  x = tf.placeholder(tf.float32, [None, 2352])
-
-  # Define loss and optimizer
-  y_ = tf.placeholder(tf.float32, [None, 5])
-
-  # Build the graph for the deep net
-  y_conv, keep_prob = deepnn(x)
-
-  with tf.name_scope('loss'):
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=y_,
-                                                            logits=y_conv)
-  cross_entropy = tf.reduce_mean(cross_entropy)
-
-  with tf.name_scope('adam_optimizer'):
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-
-  with tf.name_scope('accuracy'):
-    correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
-    correct_prediction = tf.cast(correct_prediction, tf.float32)
-  accuracy = tf.reduce_mean(correct_prediction)
-
-  graph_location = './'#tempfile.mkdtemp()
-  print('Saving graph to: %s' % graph_location)
-  train_writer = tf.summary.FileWriter(graph_location)
-  train_writer.add_graph(tf.get_default_graph())
-
-  with tf.Session() as sess:
-
-    sess.run(tf.global_variables_initializer())
-    saver = tf.train.Saver()
-    saver.restore(sess, "./model/ckp")
-    #saver = tf.train.import_meta_graph("./model/ckp.meta")
-
-    # saver.save(sess,"./model/ckp")
-    #print(sess.run(y_,{x: batch[0]}))
-    ret = sess.run(y_conv, feed_dict = {x : mnist.test.images})
-    print("result predicted:%d"%(ret))
-    # prediction=tf.argmax(y_conv,1)
-    # print(sess.run(y_conv, feed_dict={x: mnist.test.images[0].reshape(1,2352)}))
-    # prediction=tf.argmax(y_conv,1)
-    # print "predictions", y_conv.eval(feed_dict={x: mnist.test.images}, session=sess)
-    # classification = sess.run(y_, feed_dict)
-    # print 'aaaaaa', y_conv.eval()
-    print('test accuracy %g' % accuracy.eval(feed_dict={
-        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
-
-test()
-# run()
-
+if __name__ == "__main__":
+      run()
