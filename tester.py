@@ -1,18 +1,28 @@
+import os
 import mymnist
 import trainer
 import tensorflow as tf
-
+import sys
+import imageUtil
 def test():
-      # Import data
   mnist = mymnist.read_data_sets()
+  doTest(mnist)
 
-  # Create the model
+def test(img):
+    if(os.path.isfile(img)):
+        os.system("cp " + img + " ./tmporiginal.jpg")
+    else:
+        try:
+            os.system("wget -O ./tmporiginal.jpg " + img)
+        except:
+            print (img + " is not existed or cannot be downloaded")
+    imageUtil.resizeSinglePhoto('./tmporiginal.jpg', './tmpresized.jpg')
+    mnist = mymnist.read_data_set_one_image('./tmpresized.jpg', one_hot=True)
+    doTest(mnist, False)
+def doTest(mnist, batch=True):
   x = tf.placeholder(tf.float32, [None, 2352])
-
-  # Define loss and optimizer
   y_ = tf.placeholder(tf.float32, [None, 5])
 
-  # Build the graph for the deep net
   y_conv, keep_prob = trainer.deepnn(x)
   y_prediction = tf.reduce_mean(y_conv, 0)
 
@@ -29,7 +39,7 @@ def test():
     correct_prediction = tf.cast(correct_prediction, tf.float32)
   accuracy = tf.reduce_mean(correct_prediction)
 
-  graph_location = './'#tempfile.mkdtemp()
+  graph_location = './'
   print('Saving graph to: %s' % graph_location)
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
@@ -49,19 +59,19 @@ def test():
     except:
         file = open(fn, 'w')
         file.close()
-    for i in range(len(mnist.test.images)):
-        strresult = strresult + str(prediction.eval(feed_dict={x: [mnist.test.images[i]],keep_prob: 1.0}, session=sess)[0]) + '\n'
-    print strresult
-    text_file = open(fn, "w")
-    text_file.write(strresult)
-    text_file.close()
-          # print mymnist.classToFlowerName(prediction.eval(feed_dict={x: [mnist.test.images[i]],keep_prob: 1.0}, session=sess)[0])
-        
-    # print prediction.eval(feed_dict={x: [mnist.test.images[4]],keep_prob: 1.0}, session=sess)[0]
-    # print prediction.eval(feed_dict={x: [mnist.test.images[400]],keep_prob: 1.0}, session=sess)[0]
+    if(batch):
+        for i in range(len(mnist.test.images)):
+            strresult = strresult + str(prediction.eval(feed_dict={x: [mnist.test.images[i]],keep_prob: 1.0}, session=sess)[0]) + '\n'
+        print strresult
+        text_file = open(fn, "w")
+        text_file.write(strresult)
+        text_file.close()
+    else:
+        res = prediction.eval(feed_dict={x: [mnist.test.images[0]],keep_prob: 1.0}, session=sess)[0];
+        print ("single image predicted: " + str(res) + " - " + mymnist.classToFlowerName(res))
     
-
-
 if __name__ == "__main__":
-      test()
-
+    if(len(sys.argv) == 1):
+        test()
+    elif(len(sys.argv) == 2):
+        test(sys.argv[1])

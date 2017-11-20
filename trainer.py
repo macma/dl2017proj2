@@ -5,26 +5,6 @@ import os
 import numpy as np
 import mymnist
 import datetime
-# step 1
-# filenames = ['test_photos/100080576_f52e8ee070_n.jpg', 'test_photos/10140303196_b88d3d6cec.jpg',
-#              'test_photos/10172379554_b296050f82_n.jpg', 'test_photos/10172567486_2748826a8b.jpg']
-# 10172636503_21bededa75_n
-# filenames = ['test_photos/102501987_3cdb8e5394_n.jpg', 'test_photos/10503217854_e66a804309.jpg',
-#              'test_photos/10894627425_ec76bbc757_n.jpg', 'test_photos/110472418_87b6a3aa98_m.jpg']
-# 11102341464_508d558dfc_n
-#
-# step 2
-# filename_queue = tf.train.string_input_producer(filenames)
-#
-# step 3: read, decode and resize images
-# reader = tf.WholeFileReader()
-# filename, content = reader.read(filename_queue)
-# image = tf.image.decode_jpeg(content, channels=3)
-# image = tf.cast(image, tf.float32)
-# resized_image = tf.image.resize_images(image, [128, 128])
-#
-# step 4: Batching
-# image_batch = tf.train.batch([resized_image], batch_size=8)
 
 resizedir = "./resized_photos28"
 

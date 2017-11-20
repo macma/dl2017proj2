@@ -74,6 +74,19 @@ def process_images(label_file, one_hot=True, num_classes=5):
     rows = 28
     cols = 28
     return images.reshape(lines, rows, cols, 3), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
+    
+    
+def process_image(img, one_hot=True, num_classes=5):
+    image = Image.open(img)
+    img_ndarray = numpy.asarray(image, dtype='float32')
+    
+    images = numpy.empty((1, 2352))
+    labels = numpy.zeros(1)
+    images[0] = numpy.ndarray.flatten(img_ndarray)
+    # labels[0] = 0
+    rows = 28
+    cols = 28
+    return images.reshape(1, rows, cols, 3), dense_to_one_hot(numpy.array(labels, dtype=numpy.uint8), num_classes)
 
 
 def dense_to_one_hot(labels_dense, num_classes):
@@ -95,15 +108,7 @@ def read_data_sets(one_hot=False,
     validation_images, validation_labels = process_images(2, one_hot=one_hot)
     test_images, test_labels = process_images(3, one_hot=one_hot)
     print ('test_images', len(train_images), '-', len (validation_images), '--,', len(test_images))
-    # if not 0 <= validation_size <= len(train_images):
-    #     raise ValueError(
-    #         'Validation size should be between 0 and {}. Received: {}.'
-    #         .format(len(train_images), validation_size))
-
-    # validation_images = train_images[:validation_size]
-    # validation_labels = train_labels[:validation_size]
-    # train_images = train_images[validation_size:]
-    # train_labels = train_labels[validation_size:]
+    
     train = DataSet(
         train_images, train_labels, dtype=dtype, reshape=reshape, seed=seed)
     validation = DataSet(
@@ -116,7 +121,20 @@ def read_data_sets(one_hot=False,
         test_images, test_labels, dtype=dtype, reshape=reshape, seed=seed)
 
     return base.Datasets(train=train, validation=validation, test=test)
+    
+    
 
+def read_data_set_one_image(img, one_hot=False,
+                   reshape=True,
+                   dtype=dtypes.float32,
+                   seed=None):
+    test_images, test_labels = process_image(img, one_hot=one_hot)
+    test = DataSet(
+        test_images, test_labels, dtype=dtype, reshape=reshape, seed=seed)
+
+    return base.Datasets(test=test, train = test, validation = test)
+    
+    
 
 class DataSet(object):
   def __init__(self,
